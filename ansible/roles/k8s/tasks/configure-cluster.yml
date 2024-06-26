@@ -1,0 +1,45 @@
+---
+- name: Verify if cluster exists
+  ansible.builtin.stat:
+    path: /etc/kubernetes/admin.conf
+  register: cluster
+  when: "'control_plane' in group_names" 
+
+- name: Init cluter
+  block:
+    - name: Exec kubeadm init for init cluster
+      ansible.builtin.shell:
+        cmd: "kubeadm init --pod-network-cidr={{ pod_cidr }} --apiserver-advertise-address={{ addr_node_master }}"
+
+    - name: Create home dir of k8s
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.kube"
+        state: directory
+        mode: '0755'
+
+    - name: Copy admin.conf for home dir
+      ansible.builtin.copy:
+        src: /etc/kubernetes/admin.conf
+        dest: "{{ ansible_env.HOME }}/.kube/config"
+        remote_src: true
+        owner: root
+        group: root
+    
+    - name: Install addon Weave Nat
+      ansible.builtin.shell: 
+        cmd: kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+
+  when:
+    - "'control_plane' in group_names" 
+    - not cluster.stat.exists
+  
+- name: Print join command
+  ansible.builtin.shell: kubeadm token create --print-join-command
+  register: join_command
+  delegate_to: cp1.local
+
+- name: join node worker of cluster
+  ansible.builtin.shell: "{{ join_command.stdout }}"
+  when:
+    - "'kubeadm join' in join_command.stdout"
+    - "'workers' in group_names"

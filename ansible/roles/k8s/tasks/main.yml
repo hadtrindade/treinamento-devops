@@ -1,0 +1,171 @@
+---
+# tasks file for ansible/roles/k8s
+
+# - name: Include Install containerd
+#   ansible.builtin.include_tasks: install-containerd.yml
+
+# - name: Include Install K8S
+#   ansible.builtin.include_tasks: install-k8s.yml
+
+# - name: Include configure cluster
+#   ansible.builtin.include_tasks: configure-cluster.yml
+
+# - name: Include Install helm
+#   ansible.builtin.include_tasks: install-helm.yml
+
+#install containerd
+- name: Add repo containerd
+  block:
+  - name: Create dir /etc/apt/keyrings
+    ansible.builtin.file:
+      path: /etc/apt/keyrings
+      state: directory
+      mode: '0755'
+
+  - name: Download key repo of docker
+    ansible.builtin.get_url:
+      url: https://download.docker.com/linux/debian/gpg
+      dest: /etc/apt/keyrings/docker.asc
+ 
+  - name: Add repo docker
+    ansible.builtin.apt_repository:
+      repo: "deb [signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian {{ ansible_lsb.codename }} stable"
+      state: present
+      filename: docker
+
+- name: Install containerd
+  ansible.builtin.apt:
+    name: containerd.io
+    state: latest
+    update_cache: true
+
+- name: Create config file of containerd
+  ansible.builtin.shell:
+    cmd: containerd config default | tee /etc/containerd/config.toml
+
+- name: Replace SystemdCgroup = false with SystemdCgroup = true
+  ansible.builtin.lineinfile:
+    path: /etc/containerd/config.toml
+    regexp: '(\s*SystemdCgroup\s*=\s*)false'
+    line: '\1true'
+    backrefs: yes
+
+- name: Restart containerd
+  ansible.builtin.systemd:
+    name: containerd
+    state: restarted  
+
+# install k8s
+- name: Install dependencies
+  ansible.builtin.apt:
+    pkg: "{{ dependencies }}"
+    state: latest
+    update_cache: true
+
+- name: Add repo k8s
+  block:
+    - name: Create dir keyrings in /etc/apt
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Download keyrings of k8s
+      ansible.builtin.get_url:
+        url: https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key
+        dest: /tmp/k8s.key
+        mode: '0644'
+      register: download_key_k8s
+
+    - name: Create gpg key for repo k8s
+      ansible.builtin.shell:
+        cmd: cat /tmp/k8s.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      when: download_key_k8s.changed
+    
+    - name: Add repo k8s
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /"
+        state: present
+        filename: kubernetes.list
+
+- name: Install k8s (kubeadm, kubelet and kubectl)
+  ansible.builtin.apt:
+    pkg:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: latest
+    update_cache: true
+  notify: 
+    - Mark hold pkg
+
+- name: Enable kublet
+  ansible.builtin.systemd:
+    name: kubelet
+    state: started
+    enabled: true
+
+# cofigure cluster
+
+- name: Verify if cluster exists
+  ansible.builtin.stat:
+    path: /etc/kubernetes/admin.conf
+  register: cluster
+  when: "'control_plane' in group_names" 
+
+- name: Init cluter
+  block:
+    - name: Exec kubeadm init for init cluster
+      ansible.builtin.shell:
+        cmd: "kubeadm init --pod-network-cidr={{ pod_cidr }} --apiserver-advertise-address={{ addr_node_master }}"
+
+    - name: Create home dir of k8s
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/.kube"
+        state: directory
+        mode: '0755'
+
+    - name: Copy admin.conf for home dir
+      ansible.builtin.copy:
+        src: /etc/kubernetes/admin.conf
+        dest: "{{ ansible_env.HOME }}/.kube/config"
+        remote_src: true
+        owner: root
+        group: root
+    
+    - name: Install addon Weave Nat
+      ansible.builtin.shell: 
+        cmd: kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
+
+  when:
+    - "'control_plane' in group_names" 
+    - not cluster.stat.exists
+  
+- name: Print join command
+  ansible.builtin.shell: kubeadm token create --print-join-command
+  register: join_command
+  delegate_to: cp1.local
+
+- name: join node worker of cluster
+  ansible.builtin.shell: "{{ join_command.stdout }}"
+  when:
+    - "'kubeadm join' in join_command.stdout"
+    - "'workers' in group_names"
+
+# install helm
+
+- name: Install Helm
+  block:
+    - name: Download helm
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+        dest: /tmp/get_helm.sh
+        mode: 0700
+      register: download
+
+    - name: Install Helm
+      ansible.builtin.shell: /tmp/get_helm.sh
+      when:
+        - download.failed|bool == false
+  when: "'control_plane' in group_names"
+

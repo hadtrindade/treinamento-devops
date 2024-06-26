@@ -1,0 +1,49 @@
+---
+- name: Install dependencies
+  ansible.builtin.apt:
+    pkg: "{{ dependencies }}"
+    state: latest
+    update_cache: true
+
+- name: Add repo k8s
+  block:
+    - name: Create dir keyrings in /etc/apt
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Download keyrings of k8s
+      ansible.builtin.get_url:
+        url: https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key
+        dest: /tmp/k8s.key
+        mode: '0644'
+      register: download_key_k8s
+
+    - name: Create gpg key for repo k8s
+      ansible.builtin.shell:
+        cmd: cat /tmp/k8s.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      when: download_key_k8s.changed
+    
+    - name: Add repo k8s
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /"
+        state: present
+        filename: kubernetes.list
+
+- name: Install k8s (kubeadm, kubelet and kubectl)
+  ansible.builtin.apt:
+    pkg:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: latest
+    update_cache: true
+  notify: 
+    - Mark hold pkg
+
+- name: Enable kublet
+  ansible.builtin.systemd:
+    name: kubelet
+    state: started
+    enabled: true

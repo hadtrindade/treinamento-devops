@@ -1,0 +1,8 @@
+---
+# handlers file for ansible/roles/k8s
+- name: Mark hold pkg
+  ansible.builtin.shell:
+    cmd: apt-mark hold kubelet kubeadm kubectl
+
+
+

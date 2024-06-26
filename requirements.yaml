@@ -1,0 +1,4 @@
+---
+collections:
+  - sensu.sensu_go
+  - prometheus.prometheus
