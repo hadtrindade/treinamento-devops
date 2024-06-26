@@ -11,3 +11,15 @@ k8s: start
 
 ansible-collections:
 	@ansible-galaxy collection install -r requirements.yaml --force
+
+tf-init:
+	terraform -chdir="./tf" init
+
+plan:
+	terraform -chdir="./tf" plan -out tfplan
+
+plan:
+	terraform -chdir="./tf" plan -out tfplan
+
+apply:
+	terraform -chdir="./tf" apply tfplan
