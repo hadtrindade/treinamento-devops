@@ -25,8 +25,7 @@ provider "registry.terraform.io/ansible/ansible" {
 }
 
 provider "registry.terraform.io/hashicorp/aws" {
-  version     = "5.56.1"
-  constraints = ">= 4.0.0, ~> 5.0"
+  version = "5.56.1"
   hashes = [
     "h1:3c0jJCaLRgXrOZoGMAOjH+omtHUo96AkukUF4/h9gaE=",
     "zh:0fff674596251d3f46b5a9e242220871d6c634f7cf69f2741d1c3c8f4baa708c",

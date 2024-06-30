@@ -8,6 +8,7 @@ terraform {
   }
 }
 
+
 # Configure the AWS Provider
 # https://registry.terraform.io/providers/hashicorp/aws/latest/docs#assuming-an-iam-role
 provider "aws" {

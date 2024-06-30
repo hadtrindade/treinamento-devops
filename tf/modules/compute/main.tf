@@ -5,6 +5,7 @@ resource "aws_key_pair" "k8s" {
 
 resource "aws_security_group" "k8s" {
   vpc_id = var.vpc_id
+  name   = "secgroup_k8s"
 
   egress {
     description = "All traffic output"
@@ -18,7 +19,7 @@ resource "aws_security_group" "k8s" {
     description = "Default port of API SERVER"
     to_port     = 6443
     from_port   = 6443
-    protocol    = "-1"
+    protocol    = "tcp"
     self        = true
   }
 
@@ -26,7 +27,7 @@ resource "aws_security_group" "k8s" {
     description = "Ports of kubelet"
     to_port     = 10250
     from_port   = 10250
-    protocol    = "-1"
+    protocol    = "tcp"
     self        = true
   }
 
@@ -34,27 +35,29 @@ resource "aws_security_group" "k8s" {
     description = "Ports of kubelet"
     to_port     = 10255
     from_port   = 10255
-    protocol    = "-1"
+    protocol    = "tcp"
     self        = true
   }
 
   ingress {
     description = "Ports of etcd"
-    to_port     = 2379
-    from_port   = 2380
-    protocol    = "-1"
+    from_port   = 2379
+    to_port     = 2380
+    protocol    = "tcp"
     self        = true
   }
 
-  ingress {
-    # Refazer essa regra!
-    description = "Ports for using NodePort"
-    from_port   = 30000
-    to_port     = 32676
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  dynamic "ingress" {
+    for_each = ["tcp", "udp"]
 
+    content {
+      description = "Ports for using NodePort"
+      from_port   = 30000
+      to_port     = 32676
+      protocol    = ingress.value
+      cidr_blocks = ["0.0.0.0/0"]
+    }
+  }
 }
 
 data "aws_ami" "debian" {
@@ -89,8 +92,6 @@ resource "aws_launch_template" "k8s" {
 
   key_name = aws_key_pair.k8s.key_name
 
-  vpc_security_group_ids = concat([aws_security_group.k8s.id], var.sec_groups_ids)
-
 }
 
 resource "aws_instance" "master" {
@@ -101,6 +102,7 @@ resource "aws_instance" "master" {
     version = aws_launch_template.k8s.latest_version
   }
 
+  vpc_security_group_ids      = concat([aws_security_group.k8s.id], var.sec_groups_ids)
   associate_public_ip_address = true
   subnet_id                   = element(var.subnet_ids, count.index)
 
