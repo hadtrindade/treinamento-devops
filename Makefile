@@ -1,4 +1,6 @@
-.PHONY: start stop k8s ansible-collections
+.PHONY: start stop k8s ansible-req
+
+include .env
 
 start:
 	@vagrant up
@@ -9,9 +11,14 @@ stop:
 k8s: start
 	@ansible-playbook ansible/playbooks/install-k8s.yml -l k8s
 
-ansible-collections:
+ansible-req:
 	@ansible-galaxy collection install -r requirements.yaml --force
 
+
+tf-lint:
+	terraform -chdir="./tf" fmt
+	terraform -chdir="./tf" validate
+	
 tf-init:
 	terraform -chdir="./tf" init
 

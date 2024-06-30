@@ -1,4 +1,3 @@
 ---
 collections:
-  - sensu.sensu_go
-  - prometheus.prometheus
+  - community.general
