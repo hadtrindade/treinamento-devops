@@ -4,11 +4,8 @@ repos:
     hooks:
       - id: terraform_fmt
       - id: terraform_docs
-        #args: ["markdown", "table", "--output-file", "README.md", "./tf"]
         args:
-          - '--args=markdown=table'
-          - '--args=--output-file=README.md'
-          - '--args=./tf'
+          - '--args=--lockfile=false'
       - id: terraform_tflint
         args:
           - '--args=--only=terraform_deprecated_interpolation'
