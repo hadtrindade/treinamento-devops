@@ -18,3 +18,8 @@ variable "role_arn" {
   description = "Name of IAM ROLE for switch role"
   type        = string
 }
+
+variable "ssh_key_path" {
+  description = "SSH key path"
+  type        = string
+}

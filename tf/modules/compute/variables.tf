@@ -28,3 +28,13 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "key_ssh_id_sra_pub" {
+  description = "public key for acess instances"
+  type        = string
+}
+
+variable "subnet_ids" {
+  description = "Subnet IDs for instances"
+  type        = list(string)
+}

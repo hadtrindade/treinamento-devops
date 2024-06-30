@@ -1,6 +1,6 @@
 resource "aws_key_pair" "k8s" {
   key_name   = "k8s"
-  public_key = file("~/.ssh/id_rsa.pub")
+  public_key = var.key_ssh_id_sra_pub
 }
 
 resource "aws_security_group" "k8s" {
@@ -89,21 +89,20 @@ resource "aws_launch_template" "k8s" {
 
   key_name = aws_key_pair.k8s.key_name
 
-  network_interfaces {
-    associate_public_ip_address = true
-  }
-
   vpc_security_group_ids = concat([aws_security_group.k8s.id], var.sec_groups_ids)
 
 }
 
 resource "aws_instance" "master" {
-  count = var.master_count > 1 ? var.master_count : 0
+  count = var.master_count >= 1 ? var.master_count : 0
 
   launch_template {
     id      = aws_launch_template.k8s.id
     version = aws_launch_template.k8s.latest_version
   }
+
+  associate_public_ip_address = true
+  subnet_id                   = element(var.subnet_ids, count.index)
 
   tags = merge(var.tags, {
     Name = "Master-${count.index}"
@@ -116,12 +115,15 @@ resource "aws_instance" "master" {
 }
 
 resource "aws_instance" "worker" {
-  count = var.worker_count > 1 ? var.worker_count : 0
+  count = var.worker_count >= 1 ? var.worker_count : 0
 
   launch_template {
     id      = aws_launch_template.k8s.id
     version = aws_launch_template.k8s.latest_version
   }
+
+  associate_public_ip_address = true
+  subnet_id                   = element(var.subnet_ids, count.index)
 
   tags = merge(var.tags, {
     Name = "Worker-${count.index}"
@@ -131,4 +133,3 @@ resource "aws_instance" "worker" {
     ignore_changes = [tags]
   }
 }
-

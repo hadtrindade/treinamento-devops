@@ -20,5 +20,5 @@ output "secgroup_default_id" {
 
 output "ip_nat_instance" {
   description = "IP of nat instance"
-  value       = aws_eip.this.public_ip
+  value       = aws_eip.this[*].public_ip
 }

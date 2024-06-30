@@ -14,11 +14,6 @@ k8s: start
 ansible-req:
 	@ansible-galaxy collection install -r requirements.yaml --force
 
-
-tf-lint:
-	terraform -chdir="./tf" fmt
-	terraform -chdir="./tf" validate
-	
 tf-init:
 	terraform -chdir="./tf" init
 
