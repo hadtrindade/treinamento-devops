@@ -1,0 +1,40 @@
+---
+
+- name: Create dir /etc/apt/keyrings
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download key repo of docker
+  ansible.builtin.get_url:
+    url: "{{ url_key_docker }}"
+    dest: /etc/apt/keyrings/docker.asc
+
+- name: Add repo docker
+  ansible.builtin.apt_repository:
+    repo: "{{ docker_repo }}"
+    state: present
+    filename: docker
+
+- name: Install docker and containerd
+  ansible.builtin.apt:
+    pkg: "{{ docker_pkgs }}"
+    state: latest
+    update_cache: true
+
+- name: Create config file of containerd
+  ansible.builtin.shell:
+    cmd: containerd config default | tee /etc/containerd/config.toml
+
+- name: Replace SystemdCgroup = false with SystemdCgroup = true
+  ansible.builtin.lineinfile:
+    path: /etc/containerd/config.toml
+    regexp: '(\s*SystemdCgroup\s*=\s*)false'
+    line: '\1true'
+    backrefs: yes
+
+- name: Restart containerd
+  ansible.builtin.systemd:
+    name: containerd
+    state: restarted

@@ -1,9 +1,10 @@
 ---
+
 - name: Verify if cluster exists
   ansible.builtin.stat:
     path: /etc/kubernetes/admin.conf
   register: cluster
-  when: "'control_plane' in group_names" 
+  when: "'control_plane' in group_names"
 
 - name: Init cluter
   block:
@@ -24,15 +25,14 @@
         remote_src: true
         owner: root
         group: root
-    
-    - name: Install addon Weave Nat
-      ansible.builtin.shell: 
-        cmd: kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
 
+    - name: Install addon Weave Net
+      ansible.builtin.shell:
+        cmd: "kubectl apply -f {{ url_weave_net }}"
   when:
-    - "'control_plane' in group_names" 
+    - "'control_plane' in group_names"
     - not cluster.stat.exists
-  
+
 - name: Print join command
   ansible.builtin.shell: kubeadm token create --print-join-command
   register: join_command
@@ -43,3 +43,18 @@
   when:
     - "'kubeadm join' in join_command.stdout"
     - "'workers' in group_names"
+
+- name: Install Helm
+  block:
+    - name: Download helm
+      ansible.builtin.get_url:
+        url: "{{ url_helm }}"
+        dest: /tmp/get_helm.sh
+        mode: 0700
+      register: download
+
+    - name: Install Helm
+      ansible.builtin.shell: /tmp/get_helm.sh
+      when:
+        - download.failed|bool == false
+  when: "'control_plane' in group_names"

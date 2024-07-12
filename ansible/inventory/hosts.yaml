@@ -6,7 +6,7 @@ all:
         db.local:
           ansible_host: "192.168.1.40"
           ansible_port: 22
-          ansible_user: vagrant
+          ansible_user: root
     k8s:
       children:
         workers:
@@ -14,17 +14,17 @@ all:
             node1.local:
               ansible_host: "192.168.1.30"
               ansible_port: 22
-              ansible_user: vagrant
+              ansible_user: root
             node2.local:
               ansible_host: "192.168.1.31"
               ansible_port: 22
-              ansible_user: vagrant
+              ansible_user: root
         control_plane:
           hosts:
             cp1.local:
               ansible_host: "192.168.1.20"
               ansible_port: 22
-              ansible_user: vagrant
+              ansible_user: root
     k8s_ha:
       children:
         workers_ha:
@@ -32,22 +32,22 @@ all:
             node1.local:
               ansible_host: "192.168.1.30"
               ansible_port: 22
-              ansible_user: vagrant
+              ansible_user: root
             node2.local:
               ansible_host: "192.168.1.31"
               ansible_port: 22
-              ansible_user: vagrant
+              ansible_user: root
         control_plane_ha:
           hosts:
             cp1.local:
               ansible_host: "192.168.1.20"
               ansible_port: 22
-              ansible_user: vagrant
+              ansible_user: root
             cp2.local:
               ansible_host: "192.168.1.21"
               ansible_port: 22
-              ansible_user: vagrant
+              ansible_user: root
             cp3.local:
               ansible_host: "192.168.1.22"
               ansible_port: 22
-              ansible_user: vagrant
+              ansible_user: root

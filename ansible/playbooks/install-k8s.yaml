@@ -1,0 +1,7 @@
+---
+- hosts: all
+  become: true
+  remote_user: root
+  roles:
+    - common
+    - k8s

@@ -1,0 +1,13 @@
+---
+# tasks file for ansible/roles/common
+
+- name: Install dependencies
+  ansible.builtin.apt:
+    pkg:
+    - net-tools
+    - vim
+    - curl
+    - tmux
+    - gpg
+    state: latest
+    update_cache: true

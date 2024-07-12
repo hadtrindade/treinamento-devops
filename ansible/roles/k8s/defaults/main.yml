@@ -1,10 +1,24 @@
 ---
 # defaults file for ansible/roles/k8s
-dependencies: 
+dependencies:
   - apt-transport-https
   - ca-certificates
   - curl
   - gpg
 
+docker_pkgs:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+
 addr_node_master: "192.168.1.20"
 pod_cidr: "10.20.0.0/16"
+
+url_key_docker: "https://download.docker.com/linux/{{ ansible_lsb.id | lower }}/gpg"
+docker_repo: "deb [signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/{{ ansible_lsb.id | lower }} {{ ansible_lsb.codename }} stable"
+url_key_k8s: https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key
+k8s_repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /"
+url_helm: https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+url_weave_net: https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml

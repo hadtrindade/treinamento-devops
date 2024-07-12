@@ -1,6 +1,6 @@
 ---
 - hosts: all
   become: true
-  remote_user: vagrant
+  remote_user: root
   roles:
-    - k8s
+    - common

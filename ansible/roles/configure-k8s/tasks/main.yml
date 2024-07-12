@@ -1,0 +1,5 @@
+---
+# tasks file for ansible/roles/configure-k8s
+
+- name: Include configure cluster
+  ansible.builtin.include_tasks: configure-cluster.yml
