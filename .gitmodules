@@ -1,0 +1,3 @@
+[submodule "controle-contas"]
+	path = controle-contas
+	url = git@github.com:hadtrindade/controle-contas.git
