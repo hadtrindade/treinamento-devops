@@ -14,14 +14,19 @@ k8s:
 k8s-init:
 	@ansible-playbook ansible/playbooks/configure-k8s.yaml -l k8s
 
-
 ansible-req:
 	@ansible-galaxy collection install -r requirements.yaml --force
 
 tf-init:
 	terraform -chdir="./tf" init
 
-plan:
+tf-fmt:
+	terraform -chdir="./tf" fmt
+
+tf-lint:
+	terraform -chdir="./tf" validate
+
+plan: tf-fmt tf-lint
 	terraform -chdir="./tf" plan -out tfplan
 
 apply:
@@ -38,3 +43,9 @@ packer-init:
 
 packer-build: packer-fmt packer-validate
 	packer build -var-file=packer/variables.pkrvars.hcl packer/
+
+helm-dry-run:
+	helm install controle-contas ./cc-chart --dry-run --debug
+
+helm:
+	helm install controle-contas ./cc-chart --create-namespace --namespace cc

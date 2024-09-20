@@ -3,4 +3,4 @@
   become: true
   remote_user: root
   roles:
-    - configure-k8s
+    - hadtrindade.hadtrindade.configure_k8s

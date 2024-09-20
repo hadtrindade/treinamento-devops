@@ -1,3 +1,7 @@
 ---
 collections:
   - name: community.general
+  - name: https://github.com/hadtrindade/ansible-collections.git
+    version: 0.1.1
+    type: git
+  - name: community.docker

@@ -1,0 +1,19 @@
+---
+{{- if .Values.database.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ include "controle-contas.name" . }}-db
+  name: {{ .Release.Name }}-db
+  namespace: {{ include "controle-contas.namespace" . }}
+spec:
+  ports:
+  - name: database
+    port: {{ .Values.database.service.port }}
+    protocol: {{ .Values.database.service.protocol }}
+    targetPort: {{ .Values.database.service.targetPort }}
+  selector:
+    app: {{ include "controle-contas.name" . }}-db
+  type: {{ .Values.database.service.type }}
+{{- end -}}

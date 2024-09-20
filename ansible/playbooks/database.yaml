@@ -2,30 +2,5 @@
 - hosts: all
   become: true
   remote_user: root
-  tasks:
-    - name: Install dependencies
-      ansible.builtin.apt:
-        pkg:
-        - net-tools
-        - vim
-        - curl
-        - tmux
-        - gpg
-        state: latest
-        update_cache: true
-
-    - name: Add key repo postgresql
-      ansible.builtin.apt_key:
-        url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
-        state: present
-
-    - name: add repo postgresql
-      ansible.builtin.apt_repository:
-        repo: "deb https://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
-        state: present
-
-    - name: Install postgresql
-      ansible.builtin.apt:
-        name: postgresql-15
-        state: present
-        update_cache: true
+  roles:
+    - database

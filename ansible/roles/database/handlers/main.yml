@@ -1,0 +1,7 @@
+---
+# handlers file for ansible/roles/database
+- name: Start database
+  ansible.builtin.service:
+    name: postgresql@15-main
+    enabled: true
+    state: started

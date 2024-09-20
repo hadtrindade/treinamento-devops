@@ -1,0 +1,8 @@
+---
+# tasks file for ansible/roles/database
+
+- name: Install postgresql
+  ansible.builtin.include_tasks: install.yml
+
+- name: Configure database
+  ansible.builtin.include_tasks: config-postgresql.yml

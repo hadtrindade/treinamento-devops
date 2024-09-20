@@ -4,4 +4,4 @@
   remote_user: root
   roles:
     - common
-    - k8s
+    - hadtrindade.hadtrindade.k8s

@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ include "controle-contas.name" . }}
+  name: {{ .Release.Name }}
+  namespace: {{ include "controle-contas.namespace" . }}
+spec:
+  replicas: {{ .Values.application.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ include "controle-contas.name" . }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 2
+  template:
+    metadata:
+      labels:
+        app: {{ include "controle-contas.name" . }}
+    spec:
+      containers:
+      - image: {{ .Values.application.deployment.containerSpec.image }}
+        name: {{ .Values.application.deployment.containerSpec.name }}
+        ports:
+          - containerPort: {{ .Values.application.deployment.containerSpec.port }}
+        resources:
+          requests:
+            memory: "100Mi"
+            cpu: "0.3"
+          limits:
+            memory: "200Mi"
+            cpu: "0.5"
+        env:
+          - name: DATABASE_URI
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name}}-secret
+                key: database_uri
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name}}-secret
+                key: secret_key
+          - name: JWT_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name}}-secret
+                key: jwt_secret_key
+          - name: FLASK_APP
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-configmap
+                key: FLASK_APP
+          - name: FLASK_ADMIN_SWATCH
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-configmap
+                key: FLASK_ADMIN_SWATCH
+          - name: ADMIN_NAME
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-configmap
+                key: ADMIN_NAME
+          - name: SQLALCHEMY_TRACK_MODIFICATIONS
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-configmap
+                key: SQLALCHEMY_TRACK_MODIFICATIONS
+          - name: WTF_CSRF_ENABLED
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-configmap
+                key: WTF_CSRF_ENABLED
+          - name: JWT_COOKIE_CSRF_PROTECT
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-configmap
+                key: JWT_COOKIE_CSRF_PROTECT
+          - name: JWT_COOKIE_SECURE
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-configmap
+                key: JWT_COOKIE_SECURE
+        command: ["gunicorn"]
+        args: ["controle_contas.app:create_app()", "--log-file", "-", "--bind", "0.0.0.0:8000" ]

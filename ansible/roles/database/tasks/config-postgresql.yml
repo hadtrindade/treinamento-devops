@@ -1,0 +1,18 @@
+- name: Create a new database with name "controle-contas" which has a limit of 100 concurrent connections
+  community.postgresql.postgresql_db:
+    name: controle-contas
+    conn_limit: "100"
+    comment: My test DB
+
+- name: Create user in database for app controle-contas
+  community.postgresql.postgresql_user:
+    db: controle-contas
+    name: controle-contas
+    password: PasswdMassinha
+    expires: "Jan 31 2030"
+
+- name: GRANT ALL PRIVILEGES ON DATABASE controle-contas
+  community.postgresql.postgresql_privs:
+    db: controle-contas
+    privs: ALL
+    type: database

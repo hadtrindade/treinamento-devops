@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ include "controle-contas.name" . }}
+  name: {{ .Release.Name }}-service
+  namespace: {{ include "controle-contas.namespace" . }}
+spec:
+  ports:
+  - name: "http"
+    port: {{ .Values.application.service.port }}
+    protocol: {{ .Values.application.service.protocol }}
+    targetPort: {{ .Values.application.service.targetPort }}
+  selector:
+    app: {{ include "controle-contas.name" . }}
+  type: {{ .Values.application.service.type }}

@@ -1,0 +1,30 @@
+---
+
+- name: Install dependencies
+  ansible.builtin.apt:
+    pkg: "{{ pg_deps }}"
+    state: latest
+    update_cache: true
+
+- name: create path /etc/apt/keyring/postgresql.asc
+  ansible.builtin.file:
+    path: /etc/apt/keyring/
+    state: directory
+
+- name: Add key repo postgresql
+  ansible.builtin.get_url:
+    url: "{{ pg_key }}"
+    dest: /etc/apt/keyring/postgresql.asc
+
+- name: add repo postgresql
+  ansible.builtin.apt_repository:
+    repo: "{{ pg_repo }}"
+    state: present
+    filename: pgdb
+
+- name: Install postgresql
+  ansible.builtin.apt:
+    name: postgresql-15
+    state: present
+    update_cache: true
+  notify: Start database
