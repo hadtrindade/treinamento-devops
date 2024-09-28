@@ -1,0 +1,42 @@
+{{- if .Values.database.enabled -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "controle-contas.name" . }}-db
+  namespace: {{ include "controle-contas.namespace" . }}
+  labels:
+    app: {{ include "controle-contas.name" . }}
+spec:
+  serviceName: {{ include "controle-contas.name" . }}-db
+  replicas: {{ .Values.database.statefulset.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ include "controle-contas.name" . }}-db
+  template:
+    metadata:
+      labels:
+        app: {{ include "controle-contas.name" . }}-db
+    spec:
+      containers:
+      - image: {{ .Values.database.statefulset.image }}
+        name: postgres
+        ports:
+          - containerPort: 5432
+        resources:
+          requests:
+            memory: "400Mi"
+            cpu: "0.5"
+          limits:
+            memory: "600Mi"
+            cpu: "0.8"
+        env:
+          - name: POSTGRES_USER
+            value: postgres
+          - name: POSTGRES_PASSWORD
+            value: postgres
+          - name: PGDATA
+            value: /var/lib/postgresql/data/pgdata
+          - name: POSTGRES_DB
+            value: postgres
+      restartPolicy: Always
+{{- end -}}

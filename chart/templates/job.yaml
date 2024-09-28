@@ -1,0 +1,26 @@
+{{- if .Values.application.magration.enabled -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-job
+  namespace: {{ include "controle-contas.namespace" . }}
+  labels:
+    app: {{ include "controle-contas.name" . }}
+  annotations:
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  template:
+    metadata:
+    spec:
+      containers:
+        - image: {{ .Values.application.magration.image }}
+          name: app-migration
+          envFrom:
+          - secretRef:
+              name: {{ .Release.Name }}-secret
+          command: ["sh"]
+          args: ["-c", "flask db upgrade && flask create-admin-user"]
+      restartPolicy: Never
+{{- end -}}

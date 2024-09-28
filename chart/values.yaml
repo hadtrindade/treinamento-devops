@@ -1,0 +1,75 @@
+---
+
+nameOverride: ""
+
+fullnameOverride: ""
+
+# namespace
+namespaceOverride: ""
+
+# global configs
+global:
+  database_uri:
+    username: postgres
+    password: postgres
+    port: "5432"
+
+# dict para configuração do app
+application:
+  # dict para configmap
+  config:
+    FLASK_APP: controle_contas/app.py
+    FLASK_ADMIN_SWATCH: cosmo
+    ADMIN_NAME: Controle de Contas
+    SQLALCHEMY_TRACK_MODIFICATIONS: "false"
+    WTF_CSRF_ENABLED: "true"
+    JWT_COOKIE_CSRF_PROTECT: "true"
+    JWT_COOKIE_SECURE: "false"
+  # dict para secrets
+  secret:
+    secret_key: yourSecret
+    jwt_secret_key: yourSecret
+
+  # dict para services
+  service:
+    port: 80
+    targetPort: 8000
+    protocol: TCP
+    type: NodePort
+
+  # dict para configuração de ingress
+  ingress:
+    enabled: true
+    host: cp1.local
+    path: /
+    class: nginx
+    port: 80
+
+  # dict para configurar execução de job de migração de database
+  magration:
+    enabled: true
+    image: hadtrindade/cc
+
+  # dict de configuração do deployment da aplicação
+  deployment:
+    replicas: 2
+    containerSpec:
+      name: app-controle-contas
+      image: hadtrindade/cc
+      port: 8000
+
+
+# dict para configuração do database
+database:
+  enabled: true
+  service:
+    port: 5432
+    targetPort: 5432
+    protocol: TCP
+    type: ClusterIP
+
+  # statefulset do database no cluster
+  statefulset:
+    replicas: 1
+    image: postgres:14.12-alpine3.20
+    resources: {}

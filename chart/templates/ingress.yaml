@@ -1,0 +1,23 @@
+---
+{{- if .Values.application.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "controle-contas.name" . }}-ingress
+  namespace: {{ include "controle-contas.namespace" . }}
+  labels:
+    app: {{ include "controle-contas.name" . }}
+spec:
+  rules:
+  - host: {{ .Values.application.ingress.host }}
+    http:
+      paths:
+      - path: {{ .Values.application.ingress.path }}
+        pathType: Prefix
+        backend:
+          service:
+            name: controle-contas
+            port:
+              number: {{ .Values.application.ingress.port }}
+  ingressClassName: {{ .Values.application.ingress.class }}
+{{- end -}}

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ include "controle-contas.name" . }}
+  name: {{ include "controle-contas.name" . }}
+  namespace: {{ include "controle-contas.namespace" . }}
+spec:
+  replicas: {{ .Values.application.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ include "controle-contas.name" . }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 2
+  template:
+    metadata:
+      labels:
+        app: {{ include "controle-contas.name" . }}
+    spec:
+      containers:
+      - image: {{ .Values.application.deployment.containerSpec.image }}
+        name: {{ .Values.application.deployment.containerSpec.name }}
+        ports:
+          - containerPort: {{ .Values.application.deployment.containerSpec.port }}
+        envFrom:
+        - configMapRef:
+            name: {{ include "controle-contas.name" . }}-configmap
+        - secretRef:
+            name: {{ include "controle-contas.name" . }}-secret
+        resources:
+          requests:
+            memory: "100Mi"
+            cpu: "0.3"
+          limits:
+            memory: "200Mi"
+            cpu: "0.5"
+        command: ["gunicorn"]
+        args: ["controle_contas.app:create_app()", "--log-file", "-", "--bind", "0.0.0.0:8000" ]
