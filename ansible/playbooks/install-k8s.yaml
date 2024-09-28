@@ -4,4 +4,4 @@
   remote_user: root
   roles:
     - common
-    - hadtrindade.hadtrindade.k8s
+    - treinamento.devops.k8s

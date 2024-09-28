@@ -54,10 +54,30 @@ Vagrant.configure("2") do |config|
   end
 
   # config.vm.define "db" do |db|
-  #   db.vm.box = "debian/bookworm64"
+  #   db.vm.box = "ubuntu/jammy64"
   #   db.vm.hostname = "db"
   #   db.vm.network "public_network", bridge: "wlp4s0", ip: "192.168.1.40"
   #   db.vm.provider "virtualbox" do |vb|
+  #     vb.memory = "512"
+  #     vb.cpus = 1
+  #   end
+  # end
+
+  # config.vm.define "lb1" do |lb1|
+  #   lb1.vm.box = "ubuntu/jammy64"
+  #   lb1.vm.hostname = "lb1"
+  #   lb1.vm.network "public_network", bridge: "wlp4s0", ip: "192.168.1.50"
+  #   lb1.vm.provider "virtualbox" do |vb|
+  #     vb.memory = "512"
+  #     vb.cpus = 1
+  #   end
+  # end
+
+  # config.vm.define "lb2" do |lb2|
+  #   lb2.vm.box = "ubuntu/jammy64"
+  #   lb2.vm.hostname = "lb2"
+  #   lb2.vm.network "public_network", bridge: "wlp4s0", ip: "192.168.1.51"
+  #   lb2.vm.provider "virtualbox" do |vb|
   #     vb.memory = "512"
   #     vb.cpus = 1
   #   end
@@ -72,15 +92,28 @@ Vagrant.configure("2") do |config|
      SHELL
   end
 
+  config.vm.provision "shell", run: "always", inline: <<-SHELL
+    sudo ip route delete default
+    sudo ip route add default via 192.168.1.254
+    SHELL
+
+
   config.vm.provision "shell", inline: <<-SHELL
-  sudo ip route delete default
-  sudo ip route add default via 192.168.1.254
   echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
+  echo "192.168.1.30 node1.local" | sudo tee -a /etc/hosts
+  echo "192.168.1.31 node2.local" | sudo tee -a /etc/hosts
+  echo "192.168.1.20 cp1.local" | sudo tee -a /etc/hosts
+  echo "192.168.1.21 cp2.local" | sudo tee -a /etc/hosts
+  echo "192.168.1.22 cp3.local" | sudo tee -a /etc/hosts
+  echo "192.168.1.40 db.local" | sudo tee -a /etc/hosts
+  echo "192.168.1.50 lb1.local" | sudo tee -a /etc/hosts
+  echo "192.168.1.51 lb2.local" | sudo tee -a /etc/hosts
+  echo "192.168.1.52 cp.local" | sudo tee -a /etc/hosts
   SHELL
 
-  # Ansible playbook provisioning
+    # Ansible playbook provisioning
     config.vm.provision "ansible" do |ansible|
     ansible.compatibility_mode = "1.8"
-    ansible.playbook = "ansible/playbooks/install-k8s.yaml"
+    ansible.playbook = "ansible/playbooks/common.yaml"
   end
 end

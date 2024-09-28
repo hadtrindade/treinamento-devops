@@ -1,6 +1,8 @@
-.PHONY: start stop k8s k8s-init ansible-req tf-init plan apply packer-init
-
+.PHONY: init start stop k8s k8s-init ansible-req tf-init plan apply packer-init packer-build helm-dry-run helm-install
 include .env
+
+init: start ansible-req k8s k8s-init
+	echo pronto!
 
 start:
 	@vagrant up
@@ -45,7 +47,7 @@ packer-build: packer-fmt packer-validate
 	packer build -var-file=packer/variables.pkrvars.hcl packer/
 
 helm-dry-run:
-	helm install controle-contas ./cc-chart --dry-run --debug
+	helm install controle-contas ./chart --dry-run --debug
 
-helm:
-	helm install controle-contas ./cc-chart --create-namespace --namespace cc
+helm-install:
+	helm install controle-contas ./chart --create-namespace --namespace cc

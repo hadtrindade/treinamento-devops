@@ -14,4 +14,4 @@ spec:
     targetPort: {{ .Values.application.service.targetPort }}
   selector:
     app: {{ include "controle-contas.name" . }}
-  type: {{ .Values.application.service.type }}
+  type: {{ .Values.application.service.type | default "ClusterIP" }}

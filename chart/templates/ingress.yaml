@@ -7,6 +7,8 @@ metadata:
   namespace: {{ include "controle-contas.namespace" . }}
   labels:
     app: {{ include "controle-contas.name" . }}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
   - host: {{ .Values.application.ingress.host }}
@@ -16,7 +18,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: controle-contas
+            name: {{ include "controle-contas.name" . }}-service
             port:
               number: {{ .Values.application.ingress.port }}
   ingressClassName: {{ .Values.application.ingress.class }}
